@@ -4,7 +4,7 @@
 # Authored by: Alexander Helbach 
 # Last updated: 10/9/21
 # #-------------------------------------------------------------------------------
-# Takes data from Qualtrics survey and cleans, formats, and calculates needed 
+# Takes data from Qualtrics survey, cleans, formats, and calculates needed 
 # variables. After the latter, results are displayed on an interactive dashboard. 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ library(dplyr)
 library(shinydashboardPlus)
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-# Select the newest data aka that days data :) 
+# Reading in data
 df <- read.csv("Express+Employment_October+6,+2021_13.03.csv")
 # Omitting unneeded columns
 df1 <- df[-c(1:2), -c(1:18)]
