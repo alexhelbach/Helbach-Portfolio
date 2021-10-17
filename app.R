@@ -5,7 +5,7 @@
 # Last updated: 10/9/21
 # #-------------------------------------------------------------------------------
 # Takes data from Qualtrics survey and cleans, formats, and calculates needed 
-# variables. After the latter results are displayed on an interactive dashboard. 
+# variables. After the latter, results are displayed on an interactive dashboard. 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 library(shinydashboard)
