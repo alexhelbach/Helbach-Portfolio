@@ -1,0 +1,390 @@
+---
+title: "EE_Markdown"
+author: "Alexander Helbach"
+date: "10/10/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r EnvSetUp, echo=FALSE, warning=FALSE, include=FALSE, message=FALSE}
+# Setting up my envirorment 
+pacman::p_load(tidyverse, plyr, knitr, rstatix, psych)
+setwd("C:/Users/HelbachAlexander/OneDrive - University of Wisconsin-Stout/Desktop/EE Analysis")
+df <- read.csv("EE_Survey_Data.csv", na.strings = c(""))
+```
+
+```{r DataWrangling, echo=FALSE, warning=FALSE, include=FALSE}
+# Removing unneeded items and storing new dataframe in df1
+df1 <- df[-c(1:2), -c(1:18)]
+# This dataframe will leave items in their chr format for reporting 
+df3 <- df[-c(1:2), -c(1:18)]
+# Saving the item questions because writing is overrated
+Questions <- df[1, c(19:41)]
+# Lets get to re-coding: Liker style scale of Strongly agree to Strongly Disagree
+from = c("Strongly agree", "Agree", "Slightly agree", "Neither agree nor disagree",
+         "Slightly disagree", "Disagree", "Strongly disagree")
+to = c(1,2,3,4,5,6,7)
+# Mapvalues function with lapply to apply the function to indexed items 
+df1[1:14] <- data.frame(lapply(df1[1:14], mapvalues, from = from, to = to))
+# Changing variable type of the same items to double for qunat calculations 
+df1[1:14] <- data.frame(lapply(df1[1:14], as.double))
+# Calculating Sum Scores 
+df1 <- df1 %>% 
+  mutate(WFCS_Score = rowSums(df1[1:5], na.rm = TRUE)) %>% 
+  mutate(FWCS_Score = rowSums(df1[6:10], na.rm = TRUE)) %>% 
+  mutate(POWLBS_Score = rowSums(df1[11:13], na.rm = TRUE))
+# Now our demographics items will be changed from chr to factor
+### this makes me happy :,) ###
+# Age
+df1$Age <- factor(df1$Age, levels = data.frame(table(df1$Age))$Var1)
+# Ethnicity
+df1$Ethnicity <- factor(df1$Ethnicity, levels = data.frame(table(df1$Ethnicity))$Var1)
+# Gender          
+df1$Gender <- factor(df1$Gender, levels = data.frame(table(df1$Gender))$Var1)
+#  Education 
+df1$ Education <- factor(df1$ Education, levels = data.frame(table(df1$Education))$Var1)
+# PursueEducation 
+df1$PursueEducation <- factor(df1$PursueEducation, levels = data.frame(table(df1$PursueEducation))$Var1)
+# WorkClass
+df1$WorkClass <- factor(df1$WorkClass, levels = data.frame(table(df1$WorkClass))$Var1)
+# MultiPositions  
+df1$MultiPositions <- factor(df1$MultiPositions, levels = data.frame(table(df1$MultiPositions))$Var1)
+# WorkClass_3_TEXT  
+df1$WorkClass_3_TEXT <- factor(df1$WorkClass_3_TEXT, levels = data.frame(table(df1$WorkClass_3_TEXT))$Var1)
+# Hours             
+df1$Hours <- factor(df1$Hours, levels = data.frame(table(df1$Hours))$Var1)
+#-----------------------------------------------------------------------------------------------------------
+# More data cleaning will be needed once data is finalized
+#-------------------------------------------------------------------------------
+df3[1:14] <- lapply(df3[1:14], factor, levels = from, labels = from, ordered = T)
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+```
+
+### Demographic Response frequency and Visualization 
+```{r naDemoTable, echo=FALSE}
+naDemoTable <- df1[15:23] %>%
+  summarise_all(funs(sum(is.na(.)))) %>% 
+  kable(caption = "Count of NAs Per Demographic Items")
+```
+
+```{r TableMeFunction, echo=FALSE}
+# I need a function so....
+TableMe <- function(x, y, title) {
+  Table <- data.frame(table(x))
+  colnames(Table) <- c(y, "frequency")
+  Table <- kable(Table, caption = title)
+  return(Table)
+}
+```
+
+```{r Graphics, include=FALSE, echo=FALSE}
+# Color palette for data visualizations: Blues 
+EE_Colors <- c("#E9F7F4", "#D3DEF2", "#BDC4F0", "#A7ABEE", "#9191EC", "#7C78E9",
+               "#665EE7", "#5045E5", "#3A2BE3", "#2412E1")
+# Theme of all charts: This makes updating so much easier!!!
+EE_Theme <- theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_text(size = 8),
+    plot.title = element_text(hjust = .5, size = 12))
+
+```
+
+```{r AgeTable, echo=FALSE}
+TableMe(df1$Age, "Age", "frequency of Demographic Item: Age")
+```
+
+```{r AgeGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(Age)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Age)+ 
+  coord_flip() + EE_Theme
+```
+
+```{r Ethnicity, echo=FALSE}
+TableMe(df1$Ethnicity, "Ethnicity", "frequency of Demographic Item: Ethnicity")
+```
+
+```{r EthnicityGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(Ethnicity)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + coord_flip() + 
+  ggtitle(Questions$Ethnicity) + EE_Theme
+```
+
+```{r Gender, echo=FALSE}
+TableMe(df1$Gender, "Gender", "frequency of Demographic Item: Gender")
+```
+
+```{r GenderGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(Gender)) + geom_bar(color = "black", fill = EE_Colors[1:2]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Gender) +
+  EE_Theme
+```
+
+```{r Education, echo=FALSE}
+TableMe(df1$Education, "Education", "frequency of Demographic Item: Education")
+```
+
+```{r EducationGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(Education)) + geom_bar(color = "black", fill = EE_Colors[1:8]) +
+  geom_text(aes(label = ..count..), stat = "count") + coord_flip() + 
+  ggtitle(Questions$Education) + EE_Theme
+```
+
+```{r PursueEducation, echo=FALSE}
+TableMe(df1$PursueEducation, "PursueEducation", "frequency of Demographic Item: PursueEducation")
+```
+
+```{r PursueEducationGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(PursueEducation)) + geom_bar(color = "black", fill = EE_Colors[9:10]) +
+  geom_text(aes(label = ..count..), stat = "count") + 
+  ggtitle(Questions$PursueEducation) + EE_Theme
+```
+
+```{r WorkClass, echo=FALSE}
+TableMe(df1$WorkClass, "WorkClass", "frequency of Demographic Item: WorkClass")
+```
+
+```{r WorkClassGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(WorkClass)) + geom_bar(color = "black", fill = EE_Colors[3:4]) +
+  geom_text(aes(label = ..count..), stat = "count") + 
+  ggtitle(Questions$WorkClass) + EE_Theme
+```
+
+```{r MultiPositions, echo=FALSE}
+TableMe(df1$MultiPositions, "MultiPositions", "frequency of Demographic Item: MultiPositions")
+```
+
+```{r MultiPositionsGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(MultiPositions)) + geom_bar(color = "black", fill = EE_Colors[3:4]) +
+  geom_text(aes(label = ..count..), stat = "count") + 
+  ggtitle(Questions$MultiPositions) + EE_Theme
+```
+
+```{r Hours, echo=FALSE}
+TableMe(df1$Hours, "Hours", "frequency of Demographic Item: Hours")
+```
+
+```{r HoursGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df1, aes(Hours)) + geom_bar(color = "black", fill = EE_Colors[1:6]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Hours) +
+  EE_Theme
+```
+
+### Scale Items Response frequency 
+```{r ScaleItemTable, echo=FALSE}
+ItemTable <- df1[1:14] %>% 
+  get_summary_stats(type = "full", show = c("mean", "sd", "min", "max", "n")) %>% 
+  data.frame()
+ItemTable <- ItemTable[,c(1,3,4,5,6,2)]
+ItemTable$NAs <- colSums(is.na(df1[1:14]))
+kable(ItemTable, caption = "Descriptive Statitics of Scale Items")
+```
+
+```{r ItemTableGraph, echo=FALSE, fig.dim=c(9,5)}
+ggplot(ItemTable, aes(variable, mean)) + geom_col(color = "black", fill = "#2412E1") +
+  geom_text(aes(label = mean)) + ggtitle("Item Mean Score Distribution") + 
+  coord_flip() + EE_Theme
+```
+
+```{r WFCS1, echo=FALSE}
+# Item level frequency 
+TableMe(df3$WFCS1, "WFCS1", Questions$WFCS1)
+```
+
+```{r WFCS1Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(WFCS1)) + geom_bar(color = "black", fill = EE_Colors[1:6]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$WFCS1)+
+  EE_Theme 
+```
+
+```{r WFCS2, echo=FALSE}
+# Item level frequency 
+TableMe(df3$WFCS2, "WFCS2", Questions$WFCS2)
+```
+
+```{r WFCS2Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(WFCS2)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$WFCS2) +
+  EE_Theme
+```
+
+```{r WFCS3, echo=FALSE}
+# Item level frequency 
+TableMe(df3$WFCS3, "WFCS3", Questions$WFCS3)
+```
+
+```{r WFCS3Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(WFCS3)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$WFCS3) + 
+  EE_Theme
+```
+
+```{r WFCS4, echo=FALSE}
+# Item level frequency 
+TableMe(df3$WFCS4, "WFCS4", Questions$WFCS4)
+```
+
+```{r WFCS4Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(WFCS4)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$WFCS4) +
+  EE_Theme
+```
+
+```{r WFCS5, echo=FALSE}
+# Item level frequency 
+TableMe(df3$WFCS5, "WFCS5", Questions$WFCS5)
+```
+
+```{r WFCS5Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(WFCS5)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$WFCS5) +
+  EE_Theme
+```
+
+```{r FWCS1, echo=FALSE}
+# Item level frequency 
+TableMe(df3$FWCS1, "FWCS1", Questions$FWCS1)
+```
+
+```{r FWCS1Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(FWCS1)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$FWCS1) +
+  EE_Theme
+```
+
+```{r FWCS2, echo=FALSE}
+# Item level frequency 
+TableMe(df3$FWCS2, "FWCS2", Questions$FWCS2)
+```
+
+```{r FWCS2Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(FWCS2)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$FWCS2) +
+  EE_Theme
+```
+
+```{r FWCS3, echo=FALSE}
+# Item level frequency 
+TableMe(df3$FWCS3, "FWCS3", Questions$FWCS3)
+```
+
+```{r FWCS3Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(FWCS3)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$FWCS3) +
+  EE_Theme
+```
+
+```{r FWCS4, echo=FALSE}
+# Item level frequency 
+TableMe(df3$FWCS4, "FWCS4", Questions$FWCS4)
+```
+
+```{r FWCS4Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(FWCS4)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$FWCS4) +
+  EE_Theme
+```
+
+```{r FWCS5, echo=FALSE}
+# Item level frequency 
+TableMe(df3$FWCS5, "FWCS5", Questions$FWCS5)
+```
+
+```{r FWCS5Graph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(FWCS4)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$FWCS5) +
+  EE_Theme
+```
+
+```{r HoursNeed, echo=FALSE}
+# Item level frequency 
+TableMe(df3$HoursNeed, "HoursNeed", Questions$HoursNeed)
+```
+
+```{r HoursNeedGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(HoursNeed)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + 
+  ggtitle(Questions$HoursNeed) + EE_Theme
+```
+
+```{r Culture, echo=FALSE}
+# Item level frequency 
+TableMe(df3$Culture, "Culture", Questions$Culture)
+```
+
+```{r CultureGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(HoursNeed)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Culture) +
+  EE_Theme
+```
+
+```{r Policies, echo=FALSE}
+# Item level frequency 
+TableMe(df3$Policies, "Policies", Questions$Policies)
+```
+
+```{r PoliciesGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(Policies)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Policies) + 
+  EE_Theme
+```
+
+```{r TimeRespect, echo=FALSE}
+# Item level frequency 
+TableMe(df3$TimeRespect, "TimeRespect", Questions$TimeRespect)
+```
+
+```{r TimeRespectGraph, fig.dim=c(9,5), echo=FALSE}
+ggplot(df3, aes(TimeRespect)) + geom_bar(color = "black", fill = EE_Colors[1:7]) +
+  geom_text(aes(label = ..count..), stat = "count") + ggtitle(Questions$Policies)+
+  EE_Theme
+```
+
+### Scale Score Aggregations by Demographic Varibles
+```{r Score_Table_Function}
+Score_Table_Function <- function(data, Demo, variable){ 
+XF <- data.frame(aggregate(WFCS_Score~Demo, data = data, FUN = mean))
+XF$FWCS_Score <- data.frame(aggregate(FWCS_Score~Demo, data = data, FUN = mean))$FWCS_Score 
+XF$POWLBS_Score <- data.frame(aggregate(POWLBS_Score~Demo, data = data, FUN = mean))$POWLBS_Score 
+colnames(XF) <- c(variable, "WFCS Score", "FWCS Score", "POWLBS Score")
+XF <- kable(XF, align = c("c", "c", "c", "c"))
+return(XF)
+}
+```
+
+```{r Age_Score, echo=FALSE}
+Score_Table_Function(df1, df1$Age, "Age")
+```
+
+```{r Ethnicity_Score, echo=FALSE}
+Score_Table_Function(df1, df1$Ethnicity, "Ethnicity")
+```
+
+```{r Gende_Scorer, echo=FALSE}
+Score_Table_Function(df1, df1$Gender, "Gender")
+```
+
+```{r Education_Score, echo=FALSE}
+Score_Table_Function(df1, df1$Education, "Education")
+```
+
+```{r PursueEducation_Score, echo=FALSE}
+Score_Table_Function(df1, df1$PursueEducation, "PursueEducation")
+```
+
+```{r MultiPositions_Score, echo=FALSE}
+Score_Table_Function(df1, df1$MultiPositions, "MultiPositions")
+```
+
+```{r Hours_Score, echo=FALSE}
+Score_Table_Function(df1, df1$Hours, "Hours")
+```
+
+
+
+
+
