@@ -1,0 +1,133 @@
+---
+title: "QualTest"
+author: "Alexander Helbach"
+date: "10/12/2021"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r QualExitSurvey}
+#####################################
+# Graphing Themed Qualitative Items # 
+#####################################
+pacman::p_load(tidyverse, plyr, ggfittext)
+df <- readxl::read_excel("df.xlsx")
+
+Colors <- c("#440154", "#46337e", "#365c8d", "#277f8e")
+#--------------------------------------------------------------------------------  
+ggplot(df[c(1:10), ], aes(Question, Percent, fill = Theme, label = Response)) + 
+  geom_col(color = "black", position = position_fill()) + scale_y_continuous(label = scales::percent) + 
+  geom_text(aes(label = str_wrap(Response, 35)),
+            position = position_fill(vjust = .4), size = 3.5, color = "white") + 
+    geom_text(aes(label = scales::percent(Percent)), 
+            position = position_fill(vjust = .9), hjust = -2, color = "white") + 
+      geom_text(aes(label = Theme), 
+            position = position_fill(vjust = .9), size = 4, color = "white") + 
+  scale_x_discrete(labels = function(Question) str_wrap(Question, width = 35)) +
+  scale_fill_manual(breaks = c("Administrative", "Courses", "Instructor Content",
+                               "Instructors", "Lectures", "MISC", "Projects", 
+                               "Self-Paced"),
+                        values=c("#440154", "#46337e", "#365c8d", "#277f8e",
+                                 "#440154", "#46337e", "#365c8d", "#277f8e")) +
+  theme_classic() + ggtitle("Theme Percentage of Overall Items", 
+                            subtitle = "Improve: n = 6, Like Best: n = 11, Like Least: n = 11") +
+  theme(
+    axis.title = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    axis.text.x = element_text(face = "bold")
+  )
+```
+
+```{r}
+Empl <- data.frame(c(.43, .31, .57, .31, .67, .54, .4, .23, .9, .77))
+colnames(Empl) <- c("Percent")
+Empl$Group <- c("Expected", "Experienced","Expected", "Experienced",
+                "Expected", "Experienced","Expected", "Experienced",
+                "Expected", "Experienced")
+Empl$Item <- c("Advancing my career within my current company.",
+               "Advancing my career within my current company.",
+               "Advancing my career in another company.",
+               "Advancing my career in another company.",
+               "Higher income.","Higher income.",
+               "Switch fields.", "Switch fields.",
+               "Taking on more responsibilities.", 
+               "Taking on more responsibilities.")
+
+```
+
+```{r ExpectedOutcomes}
+ggplot(Empl, aes(Item, Percent)) + geom_col(aes(fill = Group), 
+                                            position = position_dodge(), color = "black") +
+  geom_text(aes(label = scales::percent(Percent), size = 4, vjust = -.5, group = Group),
+            position = position_dodge(.9)) +
+  scale_y_continuous(label = scales::percent) + 
+   scale_x_discrete(labels = function(Item) str_wrap(Item, width = 35)) +
+    scale_fill_manual(breaks = c("Expected", "Experienced"),
+                        values=c("#440154",  "#365c8d")) +
+  theme_classic() + ggtitle("Comparing the Percent of Expected and Experiencd Career Outcomes") +
+  theme(
+    axis.title = element_blank(),
+    plot.title = element_text(hjust = .5),
+    axis.text.x = element_text(size = 9, face = "bold")
+    
+  )
+```
+
+```{r}
+df <- read.csv("C:/Users/HelbachAlexander/OneDrive - University of Wisconsin-Stout/Desktop/OutcomesQual.csv")
+colnames(df) <- c("Questions", "Response", "Theme", "Count", "Percent")
+  cols <- c("Develop Skills" = "#440154", "Individual Impact" = "#440154",
+            "MISC" = "#440154", "Organizational Support", 
+            "Position Mobility" = "#440154", "Self-Improvement" = "#440154",
+            "Career Advancement" = "#2C6A84", "Develop Skills" = "#2C6A84",
+            "Individual Impact" = "#2C6A84", "MISC" = "#2C6A84",
+            "Recognition" = "#2C6A84",
+            "Cohort Communication" ="#3F165E", "Diversity and Inclusions" ="#3F165E",
+            "Marketing" ="#3F165E", "MISC" ="#3F165E", "Nothing" ="#3F165E",
+            "Career Development" = "#31557B", "Credits" = "#31557B",
+            "Experience" = "#31557B", "MISC" = "#31557B")
+            
+```
+
+```{r}
+ggplot(df, aes(Questions, Percent, fill = Theme, label = Response)) + 
+  geom_col(color = "white", position = position_fill()) + 
+  scale_y_continuous(label = scales::percent) + 
+  geom_text(aes(label = str_wrap(Response, 48)),
+            position = position_fill(vjust = .4), size = 2.8,color = "white") + 
+    geom_text(aes(label = scales::percent(Percent)), 
+            position = position_fill(vjust = .9), hjust = -2, size = 3.2,color = "white") + 
+      geom_text(aes(label = Theme), 
+            position = position_fill(vjust = .9), size = 3.2,color = "white") + 
+  scale_x_discrete(labels = function(Question) str_wrap(Question, width = 35)) +
+  scale_fill_manual(values = c("#440154", "#420958", "#40115B", "#3F195F", 
+                               "#3D2163", "#3B2866", "#39306A", "#37386D", 
+                               "#364071", "#344875", "#325078", "#30587C",
+                               "#2E6080", "#2C6783", "#2B6F87", "#29778A", 
+                               "#277F8E")) +
+  theme_classic() + 
+  ggtitle("Theme Percentage of Overall Items", 
+                            subtitle = "Define: n = 11, Proud: n = 20, Improve: n = 10, Reason: n = 14") +
+  theme(
+    axis.title = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(hjust = .5),
+    plot.subtitle = element_text(hjust = .5),
+    axis.text.x = element_text(face = "bold")
+  )
+```
+
+
+
+
+
+
+
+
+
+
