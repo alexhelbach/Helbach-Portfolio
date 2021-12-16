@@ -1,5 +1,5 @@
 ##########################################
-# EE Survey Data Shiny Application Scrip #
+# Survey Data Shiny Application Scrip #
 ##########################################
 # Authored by: Alexander Helbach 
 # Last updated: 10/9/21
@@ -18,7 +18,7 @@ library(shinydashboardPlus)
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # Reading in data
-df <- read.csv("Express+Employment_October+6,+2021_13.03.csv")
+df <- read.csv("df.csv")
 # Omitting unneeded columns
 df1 <- df[-c(1:2), -c(1:18)]
 #-------------------------------------------------------------------------------
