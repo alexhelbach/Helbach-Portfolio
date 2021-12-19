@@ -63,7 +63,7 @@ body <- dashboardBody(
                                "High" = "High", "Low" = "Low",
                                "Close " = "Close"),multiple = TRUE))),
            box(width = 12, plotOutput("plot1", hover = TRUE))),
-  # Auto Arima Model Output
+  # NNETAR Model Output
   tabItem(tabName = "NNETAR",
           fluidRow(
           box(title = "Prediction Period", width = 3, status = "primary",
